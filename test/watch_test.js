@@ -246,44 +246,31 @@ exports.watch = {
     }
   },
   mkdirThenAddFile: function(test) {
-    test.expect(2);
-
-    var expected = [
-      'new_dir',
-      'new_dir/other.js',
-    ];
+    test.expect(1);
 
     gaze('**/*.js', function(err, watcher) {
       watcher.on('all', function(status, filepath) {
-
-        var expect = expected.shift();
-        test.equal(path.relative(process.cwd(), filepath), expect);
-
-        if (expected.length === 1) {
-          // Ensure the new folder is being watched correctly after initial add
-          setTimeout(function() {
-            fs.writeFileSync('new_dir/dontmatch.txt', '');
-            setTimeout(function() {
-              fs.writeFileSync('new_dir/other.js', '');
-            }, 1000);
-          }, 1000);
-        }
-
-        if (expected.length < 1) { watcher.close(); }
+        test.equal(path.relative(process.cwd(), filepath), 'new_dir/other.js');
+        watcher.close()
       });
 
-
       fs.mkdirSync('new_dir'); //fs.mkdirSync([folder]) seems to behave differently than grunt.file.write('[folder]/[file]')
-      
+
+      // Ensure the new folder is being watched correctly after initial add
+      setTimeout(function() {
+        fs.writeFileSync('new_dir/dontmatch.txt', '');
+        setTimeout(function() {
+          fs.writeFileSync('new_dir/other.js', '');
+        }, 1000);
+      }, 1000);
 
       watcher.on('end', test.done);
     });
   },
   mkdirThenAddFileWithGruntFileWrite: function(test) {
-    test.expect(3);
+    test.expect(2);
 
     var expected = [
-      'new_dir',
       'new_dir/tmp.js',
       'new_dir/other.js',
     ];
